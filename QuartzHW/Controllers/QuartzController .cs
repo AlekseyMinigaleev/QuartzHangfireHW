@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Quartz.Impl.Matchers;
 using Quartz;
+using Quartz.Impl.Matchers;
 
 namespace QuartzHW.Controllers
 {
@@ -19,7 +19,7 @@ namespace QuartzHW.Controllers
         }
 
         [HttpPost("resume/{jobKey}")]
-        public async Task<IActionResult> ResumeJob(string jobKey)
+        public async Task<IActionResult> ResumeJobAsync(string jobKey)
         {
             var job = await _scheduler.GetJobDetail(new JobKey(jobKey));
 
@@ -31,7 +31,7 @@ namespace QuartzHW.Controllers
         }
 
         [HttpDelete("delete/{jobKey}")]
-        public async Task<IActionResult> DeleteJob(string jobKey)
+        public async Task<IActionResult> DeleteJobAsync(string jobKey)
         {
             var job = await _scheduler.GetJobDetail(new JobKey(jobKey));
 
@@ -43,7 +43,7 @@ namespace QuartzHW.Controllers
         }
 
         [HttpPost("stop/{jobKey}")]
-        public async Task<IActionResult> StopJob(string jobKey)
+        public async Task<IActionResult> StopJobAsync(string jobKey)
         {
             var job = await _scheduler.GetJobDetail(new JobKey(jobKey));
 
@@ -54,8 +54,8 @@ namespace QuartzHW.Controllers
             return Ok($"Job {jobKey} deleted.");
         }
 
-        [HttpGet("jobs")]
-        public async Task<IActionResult> GetJobs()
+        [HttpGet("get-scheduled-jobs")]
+        public async Task<IActionResult> GetScheduledJobsAsync()
         {
             var jobGroups = await _scheduler.GetJobGroupNames();
             var jobs = new List<object>();
@@ -81,16 +81,25 @@ namespace QuartzHW.Controllers
             return Ok(jobs);
         }
 
-        //[HttpPost("restore")]
-        //public IActionResult RestoreJobs([FromServices] IServiceProvider serviceProvider)
-        //{
-        //    var quartzConfigurator = serviceProvider
-        //        .GetRequiredService<IServiceCollectionQuartzConfigurator>();
+        [HttpGet("get-configured-jobs")]
+        public IActionResult GetConfiguredJobs() =>
+            Ok(JobConfiguration.Jobs.Select(x=>x.JobKey));
 
-        //    ServiceCollectionQuartzConfiguratorExtensions.AddJobs(quartzConfigurator);
-        //    ServiceCollectionQuartzConfiguratorExtensions.AddTriggers(quartzConfigurator);
+        [HttpPost("restore/{jobKey}")]
+        public async Task<IActionResult> RestoreJobsAsync(
+            string jobName)
+        {
+            var jobInfo = JobConfiguration.Jobs
+                .SingleOrDefault(x => x.JobKey.Name.Equals(jobName));
 
-        //    return Ok("All jobs restored successfully.");
-        //}
+            if (jobInfo is null)
+                return NotFound();
+
+            await _scheduler.AddJob(jobInfo.JobDetail, true);
+            foreach (var trigger in jobInfo.Triggers)
+                await _scheduler.ScheduleJob(trigger);
+
+            return Ok("job restored successfully.");
+        }
     }
 }
