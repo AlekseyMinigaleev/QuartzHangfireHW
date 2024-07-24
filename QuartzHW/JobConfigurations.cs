@@ -32,7 +32,7 @@ namespace QuartzHW
                         .ForJob(FirstJobKey)
                         .WithIdentity(FirstTriggerKey)
                         .WithSimpleSchedule(x => x
-                            .WithInterval(TimeSpan.FromSeconds(1))
+                            .WithInterval(TimeSpan.FromMilliseconds(100))
                             .RepeatForever())
                         .Build()
                 ]
@@ -47,7 +47,7 @@ namespace QuartzHW
                     .WithIdentity(SecondJobKey)
                     .UsingJobData(nameof(HelloWorldJob.Count), 100)
                     .UsingJobData(nameof(HelloWorldJob.JobName), SecondJobKey.Name)
-                 .StoreDurably()
+                    .StoreDurably()
                     .Build(),
 
                 Triggers =
@@ -56,7 +56,7 @@ namespace QuartzHW
                         .ForJob(SecondJobKey)
                         .WithIdentity(SecondTriggerKey)
                         .WithSimpleSchedule(x => x
-                            .WithInterval(TimeSpan.FromSeconds(1))
+                            .WithInterval(TimeSpan.FromMilliseconds(100))
                             .RepeatForever())
                         .Build()
                 ]
