@@ -1,6 +1,7 @@
 ﻿using Npgsql;
 using Quartz;
 using Quartz.AspNetCore;
+using Shared;
 
 namespace QuartzHW.Extensions
 {
@@ -33,37 +34,17 @@ namespace QuartzHW.Extensions
 
         private static void InitQuartzStorage(string connectionString)
         {
+            StorageCreator.CreateDatabase(connectionString);
+            CreateQuartzTables(connectionString);
+        }
+
+        private static void CreateQuartzTables(
+            string connectionString)
+        {
             var connectionStingBuilder =
                 new NpgsqlConnectionStringBuilder(connectionString);
             var targetDatabase = connectionStingBuilder.Database!;
 
-            CreateDatabase(connectionStingBuilder, targetDatabase);
-
-            CreateQuartzTables(connectionStingBuilder, targetDatabase);
-        }
-
-        private static void CreateDatabase(
-            NpgsqlConnectionStringBuilder connectionStingBuilder,
-            string targetDatabase)
-        {
-            connectionStingBuilder.Database = "postgres";
-
-            using var connection = new NpgsqlConnection(connectionStingBuilder.ConnectionString);
-            connection.Open();
-            using var cmd = new NpgsqlCommand($"SELECT 1 FROM pg_database WHERE datname = '{targetDatabase}'", connection);
-            var exists = cmd.ExecuteScalar() != null;
-
-            if (!exists)
-            {
-                using var createCmd = new NpgsqlCommand($"CREATE DATABASE \"{targetDatabase}\"", connection);
-                createCmd.ExecuteNonQuery();
-            }
-        }
-
-        private static void CreateQuartzTables(
-            NpgsqlConnectionStringBuilder connectionStingBuilder,
-            string targetDatabase)
-        {
             connectionStingBuilder.Database = targetDatabase;
             using var targetConnection = new NpgsqlConnection(connectionStingBuilder.ConnectionString);
             targetConnection.Open();
