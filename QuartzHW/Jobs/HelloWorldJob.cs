@@ -6,10 +6,6 @@ namespace QuartzHW.Jobs
     [PersistJobDataAfterExecution]
     public class HelloWorldJob : IJob
     {
-        public static readonly JobKey Key = new(
-            nameof(HelloWorldJob),
-            "group1");
-
         public int Count { private get; set; }
 
         public string JobName { private get; set; }
@@ -32,5 +28,4 @@ namespace QuartzHW.Jobs
             context.JobDetail.JobDataMap.Put(nameof(JobName), JobName);
         }
     }
-
 }

@@ -1,57 +1,42 @@
 ﻿using Quartz;
-using QuartzHW.Jobs;
 
 namespace QuartzHW.Extensions
 {
     public static class ServiceCollectionQuartzConfiguratorExtensions
     {
-        private static readonly string _firstHWJobKey = $"{HelloWorldJob.Key}-first";
-        private static readonly string _secondHWJobKey = $"{HelloWorldJob.Key}-second";
-
-        public static IServiceCollectionQuartzConfigurator AddJobs(
-            this IServiceCollectionQuartzConfigurator quartzServices)
+        public static IServiceCollectionQuartzConfigurator AddJobsAndTriggers(
+        this IServiceCollectionQuartzConfigurator quartzServices)
         {
-            quartzServices
-                .AddJob<HelloWorldJob>(opt => opt
-                    .WithIdentity(_firstHWJobKey)
-                    .UsingJobData(nameof(HelloWorldJob.Count), 0)
-                    .UsingJobData(nameof(HelloWorldJob.JobName), _firstHWJobKey)
-                );
+            foreach (var jobInfo in JobConfiguration.Jobs)
+            {
+                quartzServices
+                    .AddJob(
+                        jobInfo.JobDetail.JobType,
+                        jobInfo.JobKey,
+                        opt => opt
+                            .WithIdentity(jobInfo.JobKey)
+                            .SetJobData(jobInfo.JobDetail.JobDataMap)
+                            .DisallowConcurrentExecution(jobInfo.JobDetail.ConcurrentExecutionDisallowed)
+                            .PersistJobDataAfterExecution(jobInfo.JobDetail.PersistJobDataAfterExecution)
+                            .RequestRecovery(jobInfo.JobDetail.RequestsRecovery)
+                            .StoreDurably(jobInfo.JobDetail.Durable)
+                            .WithDescription(jobInfo.JobDetail.Description)
+                    );
 
-            quartzServices
-                .AddJob<HelloWorldJob>(opt => opt
-                    .WithIdentity(_secondHWJobKey)
-                    .UsingJobData(nameof(HelloWorldJob.Count), 100)
-                    .UsingJobData(nameof(HelloWorldJob.JobName), _secondHWJobKey)
-            );
-
-            return quartzServices;
-        }
-
-        public static IServiceCollectionQuartzConfigurator AddTriggers(
-            this IServiceCollectionQuartzConfigurator quartzServices)
-        {
-            quartzServices
-                .AddTrigger(opt => opt
-                    .ForJob(_firstHWJobKey)
-                    .WithIdentity(
-                        $"{HelloWorldJob.Key}-firstTrigger",
-                        HelloWorldJob.Key.Group)
-                    .WithSimpleSchedule(x => x
-                        .WithInterval(TimeSpan.FromSeconds(1))
-                        .RepeatForever())
-                );
-
-            quartzServices
-                .AddTrigger(opt => opt
-                    .ForJob(_secondHWJobKey)
-                    .WithIdentity(
-                        $"{HelloWorldJob.Key}-secondTrigger",
-                        HelloWorldJob.Key.Group)
-                    .WithSimpleSchedule(x => x
-                        .WithInterval(TimeSpan.FromSeconds(1))
-                        .RepeatForever())
-                );
+                foreach (var trigger in jobInfo.Triggers)
+                    quartzServices
+                        .AddTrigger(opt =>opt
+                            .ForJob(jobInfo.JobKey)
+                            .WithIdentity(trigger.Key)
+                            .WithSchedule(trigger.GetScheduleBuilder())
+                            .EndAt(trigger.EndTimeUtc)
+                            .ModifiedByCalendar(trigger.CalendarName)
+                            .StartAt(trigger.StartTimeUtc)
+                            .WithDescription(trigger.Description)
+                            .WithPriority(trigger.Priority)
+                            .WithSchedule(trigger.GetScheduleBuilder())
+                    );
+            }
 
             return quartzServices;
         }

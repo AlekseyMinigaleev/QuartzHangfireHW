@@ -20,8 +20,7 @@ namespace QuartzHW.Extensions
                     opt.UseNewtonsoftJsonSerializer();
                 });
 
-                q.AddJobs();
-                q.AddTriggers();
+                q.AddJobsAndTriggers();
             });
 
             services.AddQuartzServer(options =>
