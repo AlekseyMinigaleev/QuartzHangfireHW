@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuartzHW", "QuartzHW\Quartz
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HangfireHW", "HangfireHW\HangfireHW.csproj", "{0F9074A4-1D71-459B-8322-31D370F71B6B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared", "Shared\Shared.csproj", "{7A2E27E4-CD2A-4ECB-AA63-0F766C10F59D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{0F9074A4-1D71-459B-8322-31D370F71B6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0F9074A4-1D71-459B-8322-31D370F71B6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0F9074A4-1D71-459B-8322-31D370F71B6B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A2E27E4-CD2A-4ECB-AA63-0F766C10F59D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A2E27E4-CD2A-4ECB-AA63-0F766C10F59D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A2E27E4-CD2A-4ECB-AA63-0F766C10F59D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A2E27E4-CD2A-4ECB-AA63-0F766C10F59D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
