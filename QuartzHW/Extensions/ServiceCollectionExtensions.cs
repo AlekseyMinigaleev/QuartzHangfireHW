@@ -20,8 +20,6 @@ namespace QuartzHW.Extensions
                     opt.UsePostgres(connectionString);
                     opt.UseNewtonsoftJsonSerializer();
                 });
-
-                q.AddJobsAndTriggers();
             });
 
             services.AddQuartzServer(options =>
