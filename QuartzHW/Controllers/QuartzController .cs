@@ -18,40 +18,46 @@ namespace QuartzHW.Controllers
                 .GetScheduler().Result;
         }
 
-        [HttpPost("resume/{jobKey}")]
-        public async Task<IActionResult> ResumeJobAsync(string jobKey)
+        [HttpPost("resume/{jobGroup}/{jobName}")]
+        public async Task<IActionResult> ResumeJobAsync(
+            string jobGroup,
+            string jobName)
         {
-            var job = await _scheduler.GetJobDetail(new JobKey(jobKey));
+            var job = await GetJobDetailAsync(jobName,jobGroup);
 
             if (job is null)
                 return NotFound("Job not found.");
 
-            await _scheduler.ResumeJob(new JobKey(jobKey));
-            return Ok($"Job {jobKey} Resumed.");
+            await _scheduler.ResumeJob(job.Key);
+            return Ok($"Job {job.Key} Resumed.");
         }
 
-        [HttpDelete("delete/{jobKey}")]
-        public async Task<IActionResult> DeleteJobAsync(string jobKey)
+        [HttpDelete("delete/{jobGroup}/{jobName}")]
+        public async Task<IActionResult> DeleteJobAsync(
+            string jobGroup,
+            string jobName)
         {
-            var job = await _scheduler.GetJobDetail(new JobKey(jobKey));
+            var job = await GetJobDetailAsync(jobName, jobGroup);
 
             if (job is null)
                 return NotFound("Job not found.");
 
-            await _scheduler.DeleteJob(new JobKey(jobKey));
-            return Ok($"Job {jobKey} deleted.");
+            await _scheduler.DeleteJob(job.Key);
+            return Ok($"Job {job.Key} deleted.");
         }
 
-        [HttpPost("stop/{jobKey}")]
-        public async Task<IActionResult> StopJobAsync(string jobKey)
+        [HttpPost("stop/{jobGroup}/{jobName}")]
+        public async Task<IActionResult> StopJobAsync(
+            string jobGroup,
+            string jobName)
         {
-            var job = await _scheduler.GetJobDetail(new JobKey(jobKey));
+            var job = await GetJobDetailAsync(jobName, jobGroup);
 
             if (job is null)
                 return NotFound("Job not found.");
 
-            await _scheduler.PauseJob(new JobKey(jobKey));
-            return Ok($"Job {jobKey} deleted.");
+            await _scheduler.PauseJob(job.Key);
+            return Ok($"Job {job.Key} stoped.");
         }
 
         [HttpGet("get-scheduled-jobs")]
@@ -71,7 +77,7 @@ namespace QuartzHW.Controllers
                     var jobDetail = await _scheduler.GetJobDetail(jobKey);
                     jobs.Add(new
                     {
-                        jobKey = jobKey.Name,
+                        JobName = jobKey.Name,
                         jobGroup = jobKey.Group,
                         jobClass = jobDetail.JobType.FullName,
                     });
@@ -85,12 +91,14 @@ namespace QuartzHW.Controllers
         public IActionResult GetConfiguredJobs() =>
             Ok(JobConfiguration.Jobs.Select(x=>x.JobKey));
 
-        [HttpPost("restore/{jobKey}")]
+        [HttpPost("restore/{jobGroup}/{jobName}")]
         public async Task<IActionResult> RestoreJobsAsync(
+            string jobGroup,
             string jobName)
         {
+            var key = new JobKey(jobName, jobGroup);
             var jobInfo = JobConfiguration.Jobs
-                .SingleOrDefault(x => x.JobKey.Name.Equals(jobName));
+                .SingleOrDefault(x => x.JobKey.CompareTo(key) == 0);
 
             if (jobInfo is null)
                 return NotFound();
@@ -100,6 +108,14 @@ namespace QuartzHW.Controllers
                 await _scheduler.ScheduleJob(trigger);
 
             return Ok("job restored successfully.");
+        }
+
+        private async Task<IJobDetail?> GetJobDetailAsync(string key, string group)
+        {
+            var jobKey = new JobKey(key, group);
+            var job = await _scheduler.GetJobDetail(jobKey);
+
+            return job;
         }
     }
 }
